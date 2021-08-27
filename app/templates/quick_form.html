@@ -2,10 +2,10 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block content %}
-    <div class='container'>
+    <div class='container' style="max-width: 600px;">
         <div class='row justify-content-center'>
-            <div class="col-5">
-                <h1>New Key</h1>
+            <div class="">
+                <h1>{{ title }}</h1>
                 {{ wtf.quick_form(form, button_map={"submit": "primary"}) }}
             </div>
         </div>

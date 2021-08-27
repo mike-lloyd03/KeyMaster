@@ -1,5 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import (
+    StringField,
+    PasswordField,
+    BooleanField,
+    SubmitField,
+    DateField,
+    RadioField,
+    SelectField,
+)
 from wtforms.validators import DataRequired
 
 
@@ -14,3 +22,10 @@ class NewKeyForm(FlaskForm):
     name = StringField("Key Name", validators=[DataRequired()])
     description = StringField("Description")
     submit = SubmitField("Add Key")
+
+
+class AssignKeyForm(FlaskForm):
+    user = SelectField("User", validators=[DataRequired()])
+    key = SelectField("Key", validators=[DataRequired()])
+    date_out = DateField("Date Out", validators=[DataRequired()])
+    submit = SubmitField("Submit")

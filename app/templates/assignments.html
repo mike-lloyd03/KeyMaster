@@ -7,21 +7,25 @@
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
+                            <th>User</th>
                             <th>Key</th>
-                            <th>Description</th>
+                            <th>Date Assigned</th>
+                            <th>Date Returned</th>
                         </tr>
                         <tbody>
                     </thead>
-                    {% for k in keys %}
+                    {% for a in assignments %}
                         <tr>
-                            <td>{{ k.name }}</td>
-                            <td>{{ k.description }}</td>
+                            <td>{{ a.user }}</td>
+                            <td>{{ a.key }}</td>
+                            <td>{{ a.date_out }}</td>
+                            <td>{{ a.date_in }}</td>
                         </tr>
                     {% endfor %}
                         </tbody>
                 </table>
                 <div>
-                    <a class="btn btn-primary" href="{{ url_for('add_key') }}" role="button">Add Key</a>
+                    <a class="btn btn-primary" href="{{ url_for('assign_key') }}" role="button">Assign Key</a>
                 </div>
             </div>
         </div>

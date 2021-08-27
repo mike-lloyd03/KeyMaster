@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class='container gx-5'>
+		<div class="row justify-content-center">
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="assign-radio" id="assign-radio" checked>
+				<label class="form-check-label" for="assign-radio">
+					Assign Key
+				</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="assign-radio" id="unassign-radio">
+				<label class="form-check-label" for="unassign-radio">
+					Unassign Key
+				</label>
+			</div>
+			<div class="input-group mb-3">
+				<label class="input-group-text" for="inputGroupSelect01">User</label>
+				<select class="form-select" id="user-select">
+					<option selected>Choose...</option>
+					{% for u in users %}
+						<option value="1">{{ u.username }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="input-group mb-3">
+				<label class="input-group-text" for="inputGroupSelect01">Key</label>
+				<select class="form-select" id="key-select">
+					<option selected>Choose...</option>
+					{% for k in keys %}
+						<option value="1">{{ k.name }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="input-group mb-3">
+				<span class="input-group-text" id="basic-addon1">Date</span>
+				<input type="text" class="form-control" placeholder="Date" aria-label="Date" aria-describedby="basic-addon1">
+			</div>
+			<button type="submit" class="btn btn-primary">Submit</button>
+		</div>
+	</div>
+{% endblock %}
+

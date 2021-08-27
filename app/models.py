@@ -54,12 +54,13 @@ class Key(db.Model):
         return f"<Key {self.name}>"
 
 
-# class Assignment(db.Model):
-#     __tablename__ = "assignments"
-#     user = db.Column(db.String)
-#     key = db.Column(db.String)
-#     date_out = db.Column(db.Date)
-#     date_in = db.Column(db.Date)
+class Assignment(db.Model):
+    __tablename__ = "assignments"
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String, db.ForeignKey("users.username"))
+    key = db.Column(db.String, db.ForeignKey("keys.name"))
+    date_out = db.Column(db.Date)
+    date_in = db.Column(db.Date, nullable=True)
 
 
 @login.user_loader
