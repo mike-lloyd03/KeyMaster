@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, url_for
 from app import app, db
 
-from app.forms import LoginForm, NewKeyForm, AssignKeyForm
+from app.forms import LoginForm, NewKeyForm, EditKeyForm, AssignKeyForm
 from app.models import Key, User, Assignment
 
 from datetime import datetime
@@ -29,11 +29,21 @@ def add_key():
     form = NewKeyForm()
     if form.validate_on_submit():
         key = Key(name=form.name.data, description=form.description.data)
-        db.session.add(key)
-        db.session.commit()
-        flash("Key added")
+        key.add()
+        flash(f'Key "{key.name}" added')
         return redirect(url_for("keys"))
     return render_template("quick_form.html", form=form, title="New Key")
+
+
+@app.route("/edit_key", methods=["GET", "POST"])
+def edit_key():
+    form = EditKeyForm()
+    if form.validate_on_submit():
+        key = Key(name=form.name.data, description=form.description.data)
+        key.add()
+        flash(f'Key "{key.name}" added')
+        return redirect(url_for("keys"))
+    return render_template("quick_form.html", form=form, title="Edit Key")
 
 
 @app.route("/assign_key", methods=["GET", "POST"])

@@ -6,7 +6,7 @@ from hashlib import sha256
 from time import time
 import jwt
 
-from app import db, login
+from app import app, db, login
 
 
 class User(UserMixin, db.Model):
@@ -45,22 +45,41 @@ class User(UserMixin, db.Model):
 
 
 class Key(db.Model):
+    """The keys table tracks individual keys."""
+
     __tablename__ = "keys"
 
     name = db.Column(db.String, primary_key=True)
     description = db.Column(db.String)
+    status = db.Column(db.String, default="Active")
 
     def __repr__(self):
         return f"<Key {self.name}>"
 
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        pass
+
 
 class Assignment(db.Model):
+    """The assignments table tracks when keys are checked out and in to users."""
+
     __tablename__ = "assignments"
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.String, db.ForeignKey("users.username"))
     key = db.Column(db.String, db.ForeignKey("keys.name"))
     date_out = db.Column(db.Date)
     date_in = db.Column(db.Date, nullable=True)
+
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        pass
 
 
 @login.user_loader
