@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request
 from app import app, db
 
 from app.forms import LoginForm, NewKeyForm, EditKeyForm, AssignKeyForm
@@ -35,13 +35,18 @@ def add_key():
     return render_template("quick_form.html", form=form, title="New Key")
 
 
-@app.route("/edit_key", methods=["GET", "POST"])
-def edit_key():
+@app.route("/edit_key/<key_name>", methods=["GET", "POST"])
+def edit_key(key_name):
+    key = Key.query.filter_by(name=key_name).first_or_404()
     form = EditKeyForm()
+    form.name.data = key.name
+    form.description.data = key.description
+    form.status.data = key.status
     if form.validate_on_submit():
-        key = Key(name=form.name.data, description=form.description.data)
-        key.add()
-        flash(f'Key "{key.name}" added')
+        key.description = request.form["description"]
+        key.status = request.form["status"]
+        key.commit()
+        flash(f'Key "{key.name}" updated')
         return redirect(url_for("keys"))
     return render_template("quick_form.html", form=form, title="Edit Key")
 

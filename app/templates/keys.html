@@ -20,8 +20,7 @@
                             <td>{{ k.description }}</td>
                             <td>{{ k.status }}</td>
                             <td>
-                                <input type="radio" class="btn-check" name="options" id="option{{ loop.index }}" autocomplete="off">
-                                <label class="btn btn-outline-secondary" for="option{{ loop.index }}">Edit</label>
+                                <a class="btn btn-outline-primary" href="{{ url_for('edit_key', key_name=k.name) }}" role="button">Edit</a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -29,7 +28,6 @@
                 </table>
                 <div>
                     <a class="btn btn-primary" href="{{ url_for('add_key') }}" role="button">Add Key</a>
-                    <a class="btn btn-primary" href="{{ url_for('edit_key') }}" role="button">Edit Key</a>
                 </div>
             </div>
         </div>

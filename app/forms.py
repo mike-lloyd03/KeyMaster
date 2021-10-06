@@ -32,9 +32,11 @@ class NewKeyForm(FlaskForm):
 class EditKeyForm(FlaskForm):
     """Form for editing existing keys"""
 
-    name = StringField("Key Name", validators=[DataRequired()])
+    name = StringField("Key Name")
     description = StringField("Description")
-    status = SelectField("Status", choices=["Active", "Inactive"])
+    status = SelectField(
+        "Status", choices=["Active", "Inactive"], validate_choice=False
+    )
     submit = SubmitField("Save Changes")
 
 

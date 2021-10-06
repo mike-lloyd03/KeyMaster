@@ -56,12 +56,19 @@ class Key(db.Model):
     def __repr__(self):
         return f"<Key {self.name}>"
 
+    # All this crap needs to get fixed
     def add(self):
         db.session.add(self)
-        db.session.commit()
+        self.commit()
+
+    def update(self):
+        self.commit()
 
     def delete(self):
         pass
+
+    def commit(self):
+        db.session.commit()
 
 
 class Assignment(db.Model):
