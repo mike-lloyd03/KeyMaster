@@ -13,6 +13,15 @@ from app.models import Key, User, Assignment
 from datetime import datetime
 
 
+def add_form_choices(form):
+    """Creates form selection choices from the Users table and the Keys table"""
+    form.user.choices = [u.username for u in User.query.order_by(User.username).all()]
+    form.key.choices = [
+        k.name for k in Key.query.order_by(Key.name).filter_by(status="Active").all()
+    ]
+    return form
+
+
 @app.route("/")
 @app.route("/index")
 def index():
@@ -61,11 +70,9 @@ def edit_key(key_name):
 
 @app.route("/assign_key", methods=["GET", "POST"])
 def assign_key():
-    users = User.query.all()
-    keys = Key.query.all()
-    form = AssignKeyForm()
-    form.user.choices = [u.username for u in users]
-    form.key.choices = [k.name for k in keys]
+    form = add_form_choices(AssignKeyForm())
+    form.user.choices = [u.username for u in User.query.all()]
+    form.key.choices = [k.name for k in Key.query.all()]
     if form.validate_on_submit():
         assignment = Assignment(
             user=form.user.data, key=form.key.data, date_out=form.date_out.data
@@ -85,14 +92,9 @@ def assignments():
 
 @app.route("/edit_assignment/<assignment_id>", methods=["GET", "POST"])
 def edit_assignment(assignment_id):
-    users = User.query.all()
-    keys = Key.query.all()
-
     assignment = Assignment.query.filter_by(id=assignment_id).first_or_404()
 
-    form = EditAssignmentForm()
-    form.user.choices = [u.username for u in users]
-    form.key.choices = [k.name for k in keys]
+    form = add_form_choices(EditAssignmentForm())
     form.user.data = assignment.user
     form.key.data = assignment.key
     form.date_out.data = assignment.date_out
