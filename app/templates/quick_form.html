@@ -6,6 +6,9 @@
         <div class='row justify-content-center'>
             <div class="">
                 <h1>{{ title }}</h1>
+                {% if subtitle %}
+                    <h4>{{ subtitle }}</h4>
+                {% endif %}
                 {{ wtf.quick_form(form, button_map={"submit": "primary"}) }}
             </div>
         </div>

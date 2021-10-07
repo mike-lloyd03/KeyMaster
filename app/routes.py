@@ -39,7 +39,7 @@ def add_key():
 def edit_key(key_name):
     key = Key.query.filter_by(name=key_name).first_or_404()
     form = EditKeyForm()
-    form.name.data = key.name
+    # form.name.data = key.name
     form.description.data = key.description
     form.status.data = key.status
     if form.validate_on_submit():
@@ -48,7 +48,9 @@ def edit_key(key_name):
         key.commit()
         flash(f'Key "{key.name}" updated')
         return redirect(url_for("keys"))
-    return render_template("quick_form.html", form=form, title="Edit Key")
+    return render_template(
+        "quick_form.html", form=form, title="Edit Key", subtitle=key.name
+    )
 
 
 @app.route("/assign_key", methods=["GET", "POST"])
