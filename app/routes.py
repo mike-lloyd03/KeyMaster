@@ -1,7 +1,13 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app, db
 
-from app.forms import LoginForm, NewKeyForm, EditKeyForm, AssignKeyForm
+from app.forms import (
+    LoginForm,
+    NewKeyForm,
+    EditKeyForm,
+    AssignKeyForm,
+    EditAssignmentForm,
+)
 from app.models import Key, User, Assignment
 
 from datetime import datetime
@@ -29,7 +35,8 @@ def add_key():
     form = NewKeyForm()
     if form.validate_on_submit():
         key = Key(name=form.name.data, description=form.description.data)
-        key.add()
+        db.session.add(key)
+        db.session.commit()
         flash(f'Key "{key.name}" added')
         return redirect(url_for("keys"))
     return render_template("quick_form.html", form=form, title="New Key")
@@ -39,13 +46,12 @@ def add_key():
 def edit_key(key_name):
     key = Key.query.filter_by(name=key_name).first_or_404()
     form = EditKeyForm()
-    # form.name.data = key.name
     form.description.data = key.description
     form.status.data = key.status
     if form.validate_on_submit():
         key.description = request.form["description"]
         key.status = request.form["status"]
-        key.commit()
+        db.session.commit()
         flash(f'Key "{key.name}" updated')
         return redirect(url_for("keys"))
     return render_template(
@@ -75,3 +81,32 @@ def assign_key():
 def assignments():
     assignments = Assignment.query.all()
     return render_template("assignments.html", assignments=assignments)
+
+
+@app.route("/edit_assignment/<assignment_id>", methods=["GET", "POST"])
+def edit_assignment(assignment_id):
+    users = User.query.all()
+    keys = Key.query.all()
+
+    assignment = Assignment.query.filter_by(id=assignment_id).first_or_404()
+
+    form = EditAssignmentForm()
+    form.user.choices = [u.username for u in users]
+    form.key.choices = [k.name for k in keys]
+    form.user.data = assignment.user
+    form.key.data = assignment.key
+    form.date_out.data = assignment.date_out
+    form.date_in.data = assignment.date_in
+
+    if form.validate_on_submit():
+        assignment.user = request.form["user"]
+        assignment.key = request.form["key"]
+        assignment.date_out = datetime.strptime(request.form["date_out"], "%Y-%m-%d")
+        assignment.date_in = (
+            datetime.strptime(request.form["date_in"], "%Y-%m-%d") or None
+        )
+        db.session.commit()
+        flash("Assignment updated")
+        return redirect(url_for("assignments"))
+
+    return render_template("quick_form.html", form=form, title="Edit Assignment")

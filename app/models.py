@@ -56,20 +56,6 @@ class Key(db.Model):
     def __repr__(self):
         return f"<Key {self.name}>"
 
-    # All this crap needs to get fixed
-    def add(self):
-        db.session.add(self)
-        self.commit()
-
-    def update(self):
-        self.commit()
-
-    def delete(self):
-        pass
-
-    def commit(self):
-        db.session.commit()
-
 
 class Assignment(db.Model):
     """The assignments table tracks when keys are checked out and in to users."""
@@ -80,13 +66,6 @@ class Assignment(db.Model):
     key = db.Column(db.String, db.ForeignKey("keys.name"))
     date_out = db.Column(db.Date)
     date_in = db.Column(db.Date, nullable=True)
-
-    def add(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def delete(self):
-        pass
 
 
 @login.user_loader

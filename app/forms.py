@@ -9,7 +9,7 @@ from wtforms import (
     DateField,
     SelectField,
 )
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Optional
 
 
 class LoginForm(FlaskForm):
@@ -45,4 +45,14 @@ class AssignKeyForm(FlaskForm):
     user = SelectField("User", validators=[DataRequired()])
     key = SelectField("Key", validators=[DataRequired()])
     date_out = DateField("Date Out", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+
+class EditAssignmentForm(FlaskForm):
+    """Form for editing an existing assignment"""
+
+    user = SelectField("User", validators=[DataRequired()])
+    key = SelectField("Key", validators=[DataRequired()])
+    date_out = DateField("Date Out", validators=[DataRequired()])
+    date_in = DateField("Date In", validators=[Optional()])
     submit = SubmitField("Submit")
