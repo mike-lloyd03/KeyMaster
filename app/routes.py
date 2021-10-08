@@ -22,10 +22,64 @@ def add_form_choices(form):
     return form
 
 
+def get_headings_rows(obj_list, heading_map={}):
+    """
+    Generates a list of headings and a list of rows from a list of
+    SQLAlchemy objects
+
+    heading_map can be used to select which object attributes should be
+    added to the rows and optionally how the row heading for that
+    attribute should be renamed. If it is a dict, it will be used for
+    remaping column names. If it is a tuple or list, it will be used for
+    filtering object attributes.
+
+    Example:
+    `heading_map = {"obj_attribute1": "Heading Name1",
+                    "obj_attribute2": "Heading Name2"}`
+
+    To specify attributes without renaming them, the value can be None:
+    `heading_map = {"obj_attribute1": "Heading Name1",
+                    "obj_attribute2": None}`
+    """
+    if isinstance(heading_map, (list, tuple)):
+        is_dict = False
+        headings = list(heading_map)
+    else:
+        is_dict = True
+        if heading_map:
+            headings = [v if v else k for k, v in heading_map.items()]
+        else:
+            headings = [
+                h for h in vars(obj_list[0]).keys() if not str(h).startswith("_")
+            ]
+
+    if is_dict and heading_map:
+        eval_headings = list(heading_map.keys())
+    elif is_dict and not heading_map:
+        eval_headings = headings
+    elif not is_dict:
+        eval_headings = headings
+
+    rows = []
+    for obj in obj_list:
+        row = []
+        for heading in eval_headings:
+            row.append(getattr(obj, heading))
+        rows.append(row)
+    return (headings, rows)
+
+
 @app.route("/")
 @app.route("/index")
 def index():
-    return render_template("index.html")
+    query_results = (
+        Assignment.query.filter_by(date_in=None).order_by(Assignment.user).all()
+    )
+
+    heading_map = {"user": "User", "key": "Key Assigned"}
+    headings, rows = get_headings_rows(query_results, heading_map)
+    print(headings, rows)
+    return render_template("index.html", headings=headings, rows=rows)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -51,8 +105,9 @@ def add_key():
     return render_template("quick_form.html", form=form, title="New Key")
 
 
-@app.route("/edit_key/<key_name>", methods=["GET", "POST"])
-def edit_key(key_name):
+@app.route("/edit_key", methods=["GET", "POST"])
+def edit_key():
+    key_name = request.args.get("name")
     key = Key.query.filter_by(name=key_name).first_or_404()
     form = EditKeyForm()
     form.description.data = key.description
@@ -90,8 +145,9 @@ def assignments():
     return render_template("assignments.html", assignments=assignments)
 
 
-@app.route("/edit_assignment/<assignment_id>", methods=["GET", "POST"])
-def edit_assignment(assignment_id):
+@app.route("/edit_assignment", methods=["GET", "POST"])
+def edit_assignment():
+    assignment_id = request.args.get("id")
     assignment = Assignment.query.filter_by(id=assignment_id).first_or_404()
 
     form = add_form_choices(EditAssignmentForm())
