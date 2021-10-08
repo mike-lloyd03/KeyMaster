@@ -1,12 +1,14 @@
 from flask import render_template, flash, redirect, url_for, request
-from app import app, db
+from flask_login import current_user, login_user, login_required, logout_user
 
+from app import app, db
 from app.forms import (
     LoginForm,
     NewKeyForm,
     EditKeyForm,
     AssignKeyForm,
     EditAssignmentForm,
+    LoginForm,
 )
 from app.models import Key, User, Assignment
 
@@ -71,6 +73,7 @@ def get_headings_rows(obj_list, heading_map={}):
 
 @app.route("/")
 @app.route("/index")
+@login_required
 def index():
     query_results = (
         Assignment.query.filter_by(date_in=None).order_by(Assignment.user).all()
@@ -84,16 +87,34 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash("Invalid login credentials")
+            return redirect(url_for("login"))
+        login_user(user)
+        return redirect(url_for("index"))
     return render_template("quick_form.html", form=LoginForm(), title="Login")
 
 
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
+
 @app.route("/keys")
+@login_required
 def keys():
     keys = Key.query.all()
     return render_template("keys.html", keys=keys)
 
 
 @app.route("/add_key", methods=["GET", "POST"])
+@login_required
 def add_key():
     form = NewKeyForm()
     if form.validate_on_submit():
@@ -106,6 +127,7 @@ def add_key():
 
 
 @app.route("/edit_key", methods=["GET", "POST"])
+@login_required
 def edit_key():
     key_name = request.args.get("name")
     key = Key.query.filter_by(name=key_name).first_or_404()
@@ -124,6 +146,7 @@ def edit_key():
 
 
 @app.route("/assign_key", methods=["GET", "POST"])
+@login_required
 def assign_key():
     form = add_form_choices(AssignKeyForm())
     form.user.choices = [u.username for u in User.query.all()]
@@ -140,12 +163,14 @@ def assign_key():
 
 
 @app.route("/assignments", methods=["GET", "POST"])
+@login_required
 def assignments():
     assignments = Assignment.query.all()
     return render_template("assignments.html", assignments=assignments)
 
 
 @app.route("/edit_assignment", methods=["GET", "POST"])
+@login_required
 def edit_assignment():
     assignment_id = request.args.get("id")
     assignment = Assignment.query.filter_by(id=assignment_id).first_or_404()

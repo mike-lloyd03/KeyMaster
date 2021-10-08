@@ -16,7 +16,7 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-            <a class="nav-link" href="/index">Home</a>
+          <a class="nav-link" href="{{ url_for('index') }}">Home</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="/login">Login</a>
@@ -26,6 +26,9 @@
         </li>
         <li class="nav-item">
             <a class="nav-link" href="/assignments">Assignments</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/logout">Logout</a>
         </li>
       </ul>
   </div>
