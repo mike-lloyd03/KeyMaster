@@ -8,6 +8,8 @@ from app.forms import (
     EditKeyForm,
     AssignKeyForm,
     EditAssignmentForm,
+    NewUserForm,
+    EditUserForm,
     LoginForm,
 )
 from app.models import Key, User, Assignment
@@ -149,12 +151,17 @@ def edit_key():
     )
 
 
+@app.route("/assignments", methods=["GET", "POST"])
+@login_required
+def assignments():
+    assignments = Assignment.query.all()
+    return render_template("assignments.html", assignments=assignments)
+
+
 @app.route("/assign_key", methods=["GET", "POST"])
 @login_required
 def assign_key():
     form = add_form_choices(AssignKeyForm())
-    form.user.choices = [u.username for u in User.query.all()]
-    form.key.choices = [k.name for k in Key.query.all()]
     if form.validate_on_submit():
         assignment = Assignment(
             user=form.user.data, key=form.key.data, date_out=form.date_out.data
@@ -164,13 +171,6 @@ def assign_key():
         flash("Key assigned")
         return redirect(url_for("assignments"))
     return render_template("quick_form.html", form=form, title="Assign Key")
-
-
-@app.route("/assignments", methods=["GET", "POST"])
-@login_required
-def assignments():
-    assignments = Assignment.query.all()
-    return render_template("assignments.html", assignments=assignments)
 
 
 @app.route("/edit_assignment", methods=["GET", "POST"])
@@ -197,3 +197,49 @@ def edit_assignment():
         return redirect(url_for("assignments"))
 
     return render_template("quick_form.html", form=form, title="Edit Assignment")
+
+
+@app.route("/users")
+@login_required
+def users():
+    users = User.query.all()
+    return render_template("users.html", users=users)
+
+
+@app.route("/add_user", methods=["GET", "POST"])
+@login_required
+def add_user():
+    form = NewUserForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            can_login=form.can_login.data,
+        )
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash(f"User {user.username} created")
+        return redirect(url_for("users"))
+    return render_template("quick_form.html", form=form, title="Add User")
+
+
+@app.route("/edit_user", methods=["GET", "POST"])
+@login_required
+def edit_user():
+    user_id = request.args.get("id")
+    user = User.query.filter_by(id=user_id).first_or_404()
+    form = EditUserForm()
+    form.username.data = user.username
+    form.email.data = user.email
+    form.can_login.data = user.can_login
+    if form.validate_on_submit():
+        user.username = request.form["username"]
+        user.email = request.form["email"]
+        user.can_login = request.form["can_login"] == "y"
+        db.session.commit()
+        flash(f'User "{user.username}" updated')
+        return redirect(url_for("users"))
+    return render_template(
+        "quick_form.html", form=form, title="Edit User", subtitle=user.username
+    )
