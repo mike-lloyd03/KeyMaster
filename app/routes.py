@@ -92,6 +92,9 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
+        if not user.can_login:
+            flash("Login is not permitted for this user.")
+            return redirect(url_for("login"))
         if user is None or not user.check_password(form.password.data):
             flash("Invalid login credentials")
             return redirect(url_for("login"))
