@@ -19,9 +19,12 @@ from datetime import datetime
 
 def add_form_choices(form):
     """Creates form selection choices from the Users table and the Keys table"""
-    form.user.choices = [u.username for u in User.query.order_by(User.username).all()]
+    form.user.choices = [
+        (u.username, u.username) for u in User.query.order_by(User.username).all()
+    ]
     form.key.choices = [
-        k.name for k in Key.query.order_by(Key.name).filter_by(status="Active").all()
+        (k.name, k.name)
+        for k in Key.query.order_by(Key.name).filter_by(status="Active").all()
     ]
     return form
 
@@ -161,10 +164,11 @@ def assignments():
 def assign_key():
     form = add_form_choices(AssignKeyForm())
     if form.validate_on_submit():
-        assignment = Assignment(
-            user=form.user.data, key=form.key.data, date_out=form.date_out.data
-        )
-        db.session.add(assignment)
+        for key in form.key.data:
+            assignment = Assignment(
+                user=form.user.data, key=key, date_out=form.date_out.data
+            )
+            db.session.add(assignment)
         db.session.commit()
         flash("Key assigned")
         return redirect(url_for("assignments"))
@@ -181,8 +185,8 @@ def edit_assignment():
         EditAssignmentForm(
             user=assignment.user,
             key=assignment.key,
-            date_out=key.date_out,
-            date_in=key.date_in,
+            date_out=assignment.date_out,
+            date_in=assignment.date_in,
         )
     )
 
@@ -201,8 +205,8 @@ def edit_assignment():
 @app.route("/users")
 @login_required
 def users():
-    users = User.query.order_by(User.username).all()
-    return render_template("users.html", users=users)
+    user_list = User.query.order_by(User.username).all()
+    return render_template("users.html", users=user_list)
 
 
 @app.route("/add_user", methods=["GET", "POST"])
@@ -236,8 +240,6 @@ def edit_user():
         user.email = form.email.data
         user.can_login = form.can_login.data
         db.session.commit()
-        flash(
-            f'User "{user.username}" updated. {form.username.data} {form.email.data} {form.can_login.data}'
-        )
+        flash(f'User "{user.username}" updated.')
         return redirect(url_for("users"))
     return render_template("quick_form.html", form=form, title="Edit User")

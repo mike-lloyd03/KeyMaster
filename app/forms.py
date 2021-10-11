@@ -8,6 +8,7 @@ from wtforms import (
     SubmitField,
     DateField,
     SelectField,
+    SelectMultipleField,
 )
 from wtforms.validators import DataRequired, Optional, EqualTo
 
@@ -43,7 +44,7 @@ class AssignKeyForm(FlaskForm):
     """Form for assigning keys to a user"""
 
     user = SelectField("User", validators=[DataRequired()])
-    key = SelectField("Key", validators=[DataRequired()])
+    key = SelectMultipleField("Key", validators=[DataRequired()])
     date_out = DateField("Date Out", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
