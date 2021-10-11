@@ -137,12 +137,10 @@ def add_key():
 def edit_key():
     key_name = request.args.get("name")
     key = Key.query.filter_by(name=key_name).first_or_404()
-    form = EditKeyForm()
-    form.description.data = key.description
-    form.status.data = key.status
+    form = EditKeyForm(description=key.description, status=key.status)
     if form.validate_on_submit():
-        key.description = request.form["description"]
-        key.status = request.form["status"]
+        key.description = form.description.data
+        key.status = form.status.data
         db.session.commit()
         flash(f'Key "{key.name}" updated')
         return redirect(url_for("keys"))
@@ -179,19 +177,20 @@ def edit_assignment():
     assignment_id = request.args.get("id")
     assignment = Assignment.query.filter_by(id=assignment_id).first_or_404()
 
-    form = add_form_choices(EditAssignmentForm())
-    form.user.data = assignment.user
-    form.key.data = assignment.key
-    form.date_out.data = assignment.date_out
-    form.date_in.data = assignment.date_in
+    form = add_form_choices(
+        EditAssignmentForm(
+            user=assignment.user,
+            key=assignment.key,
+            date_out=key.date_out,
+            date_in=key.date_in,
+        )
+    )
 
     if form.validate_on_submit():
-        assignment.user = request.form["user"]
-        assignment.key = request.form["key"]
-        assignment.date_out = datetime.strptime(request.form["date_out"], "%Y-%m-%d")
-        assignment.date_in = (
-            datetime.strptime(request.form["date_in"], "%Y-%m-%d") or None
-        )
+        assignment.user = form.user.data
+        assignment.key = form.key.data
+        assignment.date_out = form.date_out.data
+        assignment.date_in = form.date_in.data
         db.session.commit()
         flash("Assignment updated")
         return redirect(url_for("assignments"))
@@ -202,7 +201,7 @@ def edit_assignment():
 @app.route("/users")
 @login_required
 def users():
-    users = User.query.all()
+    users = User.query.order_by(User.username).all()
     return render_template("users.html", users=users)
 
 
@@ -229,17 +228,16 @@ def add_user():
 def edit_user():
     user_id = request.args.get("id")
     user = User.query.filter_by(id=user_id).first_or_404()
-    form = EditUserForm()
-    form.username.data = user.username
-    form.email.data = user.email
-    form.can_login.data = user.can_login
-    if form.validate_on_submit():
-        user.username = request.form["username"]
-        user.email = request.form["email"]
-        user.can_login = request.form["can_login"] == "y"
-        db.session.commit()
-        flash(f'User "{user.username}" updated')
-        return redirect(url_for("users"))
-    return render_template(
-        "quick_form.html", form=form, title="Edit User", subtitle=user.username
+    form = EditUserForm(
+        username=user.username, email=user.email, can_login=user.can_login
     )
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.can_login = form.can_login.data
+        db.session.commit()
+        flash(
+            f'User "{user.username}" updated. {form.username.data} {form.email.data} {form.can_login.data}'
+        )
+        return redirect(url_for("users"))
+    return render_template("quick_form.html", form=form, title="Edit User")
