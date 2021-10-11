@@ -1,0 +1,11 @@
+[Unit]
+Description=A key management tool
+
+[Service]
+Type=simple
+WorkingDirectory=/home/mike/KeyMaster
+ExecStart=/home/mike/KeyMaster/.venv/bin/gunicorn -b localhost:8000 -w 4 keymaster:app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
