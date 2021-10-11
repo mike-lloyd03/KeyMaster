@@ -64,6 +64,7 @@ class NewUserForm(FlaskForm):
 
     username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
+    display_name = StringField("Display Name")
     password = PasswordField("Password", validators=[DataRequired()])
     password2 = PasswordField(
         "Repeat Password", validators=[DataRequired(), EqualTo("password")]
@@ -77,5 +78,6 @@ class EditUserForm(FlaskForm):
 
     username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
+    display_name = StringField("Display Name")
     can_login = BooleanField("Can Login?")
     submit = SubmitField("Submit")

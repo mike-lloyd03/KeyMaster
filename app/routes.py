@@ -217,6 +217,7 @@ def add_user():
         user = User(
             username=form.username.data,
             email=form.email.data,
+            display_name=form.display_name.data,
             can_login=form.can_login.data,
         )
         user.set_password(form.password.data)
@@ -233,11 +234,15 @@ def edit_user():
     user_id = request.args.get("id")
     user = User.query.filter_by(id=user_id).first_or_404()
     form = EditUserForm(
-        username=user.username, email=user.email, can_login=user.can_login
+        username=user.username,
+        email=user.email,
+        display_name=user.display_name,
+        can_login=user.can_login,
     )
     if form.validate_on_submit():
         user.username = form.username.data
         user.email = form.email.data
+        user.display_name = form.display_name.data
         user.can_login = form.can_login.data
         db.session.commit()
         flash(f'User "{user.username}" updated.')

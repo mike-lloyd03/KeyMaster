@@ -15,7 +15,7 @@
                     <tbody>
                         {% for u in users %}
                             <tr>
-                                <td>{{ u.username }}</td>
+                                <td>{{ u.display_name if u.display_name else u.username }}</td>
                                 <td>{{ u.email }}</td>
                                 <td>
                                     <a class="btn btn-outline-primary" href="{{ url_for('edit_user', id=u.id) }}" role="button">Edit</a>
