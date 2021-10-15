@@ -20,7 +20,8 @@ from datetime import datetime
 def add_form_choices(form):
     """Creates form selection choices from the Users table and the Keys table"""
     form.user.choices = [
-        (u.username, u.username) for u in User.query.order_by(User.username).all()
+        (u.username, u.display_name or u.username)
+        for u in User.query.order_by(User.username).all()
     ]
     form.key.choices = [
         (k.name, k.name)
@@ -83,8 +84,13 @@ def index():
     query_results = (
         Assignment.query.filter_by(date_in=None).order_by(Assignment.user).all()
     )
+    usernames = User.query.all()
+    for r in query_results:
+        for un in usernames:
+            if un.username == r.user:
+                r.display_name = un.display_name if un.display_name else un.username
 
-    heading_map = {"user": "User", "key": "Key Assigned"}
+    heading_map = {"display_name": "User", "key": "Key Assigned"}
     headings, rows = get_headings_rows(query_results, heading_map)
     print(headings, rows)
     return render_template("index.html", headings=headings, rows=rows)
