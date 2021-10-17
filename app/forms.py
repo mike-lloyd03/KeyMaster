@@ -9,6 +9,7 @@ from wtforms import (
     DateField,
     SelectField,
     SelectMultipleField,
+    HiddenField,
 )
 from wtforms.validators import DataRequired, Optional, EqualTo
 
@@ -38,6 +39,9 @@ class EditKeyForm(FlaskForm):
         "Status", choices=["Active", "Inactive"], validate_choice=False
     )
     submit = SubmitField("Save Changes")
+    delete = SubmitField("Delete Key")
+    name = HiddenField()
+    action = HiddenField()
 
 
 class AssignKeyForm(FlaskForm):
@@ -81,3 +85,8 @@ class EditUserForm(FlaskForm):
     display_name = StringField("Display Name")
     can_login = BooleanField("Can Login?")
     submit = SubmitField("Submit")
+
+
+class ConfirmForm(FlaskForm):
+    yes = SubmitField("Yes")
+    no = SubmitField("No")

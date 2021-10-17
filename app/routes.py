@@ -11,10 +11,13 @@ from app.forms import (
     NewUserForm,
     EditUserForm,
     LoginForm,
+    ConfirmForm,
 )
 from app.models import Key, User, Assignment
 
 from datetime import datetime
+
+types = {"key": Key, "user": User, "assignment": Assignment}
 
 
 def add_form_choices(form):
@@ -85,6 +88,7 @@ def index():
         Assignment.query.filter_by(date_in=None).order_by(Assignment.user).all()
     )
     usernames = User.query.all()
+
     for r in query_results:
         for un in usernames:
             if un.username == r.user:
@@ -100,9 +104,12 @@ def index():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("index"))
+
     form = LoginForm()
+
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
+
         if (
             user is None
             or not user.can_login
@@ -110,8 +117,10 @@ def login():
         ):
             flash("Invalid login credentials")
             return redirect(url_for("login"))
+
         login_user(user)
         return redirect(url_for("index"))
+
     return render_template("quick_form.html", form=LoginForm(), title="Login")
 
 
@@ -132,12 +141,14 @@ def keys():
 @login_required
 def add_key():
     form = NewKeyForm()
+
     if form.validate_on_submit():
         key = Key(name=form.name.data, description=form.description.data)
         db.session.add(key)
         db.session.commit()
         flash(f'Key "{key.name}" added')
         return redirect(url_for("keys"))
+
     return render_template("quick_form.html", form=form, title="New Key")
 
 
@@ -145,14 +156,32 @@ def add_key():
 @login_required
 def edit_key():
     key_name = request.args.get("name")
-    key = Key.query.filter_by(name=key_name).first_or_404()
+    key = Key.query.filter_by(name=key_name).first()
+    if not key:
+        return render_template("404.html"), 404
     form = EditKeyForm(description=key.description, status=key.status)
+
     if form.validate_on_submit():
+
+        if form.delete.data:
+            return redirect(url_for("confirm_delete", item=key_name, model="key"))
+            # confirm_form = ConfirmForm()
+            # if confirm_form.validate_on_submit():
+            #     flash("else")
+            #     if confirm_form.yes.data:
+            #         flash(f"Key {key_name} deleted.")
+            #         return redirect(url_for("keys"))
+            # return render_template(
+            #     "quick_form.html",
+            #     form=confirm_form,
+            #     title=f"Are you sure you want to delete {key_name}?",
+            # )
         key.description = form.description.data
         key.status = form.status.data
         db.session.commit()
         flash(f'Key "{key.name}" updated')
         return redirect(url_for("keys"))
+
     return render_template(
         "quick_form.html", form=form, title="Edit Key", subtitle=key.name
     )
@@ -169,6 +198,7 @@ def assignments():
 @login_required
 def assign_key():
     form = add_form_choices(AssignKeyForm())
+
     if form.validate_on_submit():
         for key in form.key.data:
             assignment = Assignment(
@@ -178,6 +208,7 @@ def assign_key():
         db.session.commit()
         flash("Key assigned")
         return redirect(url_for("assignments"))
+
     return render_template("quick_form.html", form=form, title="Assign Key")
 
 
@@ -185,7 +216,9 @@ def assign_key():
 @login_required
 def edit_assignment():
     assignment_id = request.args.get("id")
-    assignment = Assignment.query.filter_by(id=assignment_id).first_or_404()
+    assignment = Assignment.query.filter_by(id=assignment_id).first()
+    if not assignment:
+        return render_template("404.html"), 404
 
     form = add_form_choices(
         EditAssignmentForm(
@@ -219,6 +252,7 @@ def users():
 @login_required
 def add_user():
     form = NewUserForm()
+
     if form.validate_on_submit():
         user = User(
             username=form.username.data,
@@ -231,6 +265,7 @@ def add_user():
         db.session.commit()
         flash(f"User {user.username} created")
         return redirect(url_for("users"))
+
     return render_template("quick_form.html", form=form, title="Add User")
 
 
@@ -238,13 +273,16 @@ def add_user():
 @login_required
 def edit_user():
     user_id = request.args.get("id")
-    user = User.query.filter_by(id=user_id).first_or_404()
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return render_template("404.html"), 404
     form = EditUserForm(
         username=user.username,
         email=user.email,
         display_name=user.display_name,
         can_login=user.can_login,
     )
+
     if form.validate_on_submit():
         user.username = form.username.data
         user.email = form.email.data
@@ -253,4 +291,33 @@ def edit_user():
         db.session.commit()
         flash(f'User "{user.username}" updated.')
         return redirect(url_for("users"))
+
     return render_template("quick_form.html", form=form, title="Edit User")
+
+
+@app.route("/confirm_delete", methods=["GET", "POST"])
+@login_required
+def confirm_delete():
+    form = ConfirmForm()
+
+    model_name = request.args.get("model")
+    item_name = request.args.get("item")
+    model = types.get(model_name)
+    item = model.query.get(item_name)
+
+    if not model or not item:
+        return render_template("404.html"), 404
+
+    if form.validate_on_submit():
+        if form.yes.data:
+            flash(f'Key "{item_name}" deleted.')
+            ## TODO Make sure key is not checked out before deleting
+            db.session.delete(item)
+            db.session.commit()
+        return redirect(url_for("keys"))
+
+    return render_template(
+        "quick_form.html",
+        form=form,
+        title=f"Are you sure you want to delete {item}?",
+    )
