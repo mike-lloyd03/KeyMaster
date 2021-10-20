@@ -143,10 +143,15 @@ def add_key():
     form = NewKeyForm()
 
     if form.validate_on_submit():
-        key = Key(name=form.name.data, description=form.description.data)
-        db.session.add(key)
-        db.session.commit()
-        flash(f'Key "{key.name}" added')
+
+        if Key.query.get(form.name.data):
+            flash(f'Key "{form.name.data}" already exists.', "danger")
+        else:
+            key = Key(name=form.name.data, description=form.description.data)
+            db.session.add(key)
+            db.session.commit()
+            flash(f'Key "{key.name}" added')
+
         return redirect(url_for("keys"))
 
     return render_template("quick_form.html", form=form, title="New Key")
@@ -162,20 +167,9 @@ def edit_key():
     form = EditKeyForm(description=key.description, status=key.status)
 
     if form.validate_on_submit():
-
         if form.delete.data:
             return redirect(url_for("confirm_delete", item=key_name, model="key"))
-            # confirm_form = ConfirmForm()
-            # if confirm_form.validate_on_submit():
-            #     flash("else")
-            #     if confirm_form.yes.data:
-            #         flash(f"Key {key_name} deleted.")
-            #         return redirect(url_for("keys"))
-            # return render_template(
-            #     "quick_form.html",
-            #     form=confirm_form,
-            #     title=f"Are you sure you want to delete {key_name}?",
-            # )
+
         key.description = form.description.data
         key.status = form.status.data
         db.session.commit()
@@ -230,6 +224,11 @@ def edit_assignment():
     )
 
     if form.validate_on_submit():
+        if form.delete.data:
+            return redirect(
+                url_for("confirm_delete", item=assignment_id, model="assignment")
+            )
+
         assignment.user = form.user.data
         assignment.key = form.key.data
         assignment.date_out = form.date_out.data
@@ -254,16 +253,20 @@ def add_user():
     form = NewUserForm()
 
     if form.validate_on_submit():
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            display_name=form.display_name.data,
-            can_login=form.can_login.data,
-        )
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash(f"User {user.username} created")
+        if User.query.filter_by(username=form.username.data).first():
+            print("Existing user:", User.query.get(form.username.data))
+            flash(f'User "{form.username.data}" already exists', "danger")
+        else:
+            user = User(
+                username=form.username.data,
+                email=form.email.data,
+                display_name=form.display_name.data,
+                can_login=form.can_login.data,
+            )
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            flash(f'User "{user.username}" created')
         return redirect(url_for("users"))
 
     return render_template("quick_form.html", form=form, title="Add User")
@@ -284,6 +287,9 @@ def edit_user():
     )
 
     if form.validate_on_submit():
+        if form.delete.data:
+            return redirect(url_for("confirm_delete", item=user_id, model="user"))
+
         user.username = form.username.data
         user.email = form.email.data
         user.display_name = form.display_name.data
@@ -304,20 +310,50 @@ def confirm_delete():
     item_name = request.args.get("item")
     model = types.get(model_name)
     item = model.query.get(item_name)
+    if model_name == "user":
+        item_name = item.display_name if item.display_name else item.username
 
     if not model or not item:
         return render_template("404.html"), 404
 
     if form.validate_on_submit():
         if form.yes.data:
-            flash(f'Key "{item_name}" deleted.')
-            ## TODO Make sure key is not checked out before deleting
-            db.session.delete(item)
-            db.session.commit()
-        return redirect(url_for("keys"))
+            if model_name == "key":
+                # Check if key is currently assigned to users
+                if Assignment.query.filter_by(date_in=None, key=item_name).all():
+                    flash(
+                        f'Key "{item_name}" is still checked out to users and cannot be deleted.',
+                        "danger",
+                    )
+                else:
+                    flash(f'Key {item_name}" deleted.')
+                    db.session.delete(item)
+                    db.session.commit()
+
+            elif model_name == "user":
+                # Check if user has any keys checked out
+                if Assignment.query.filter_by(date_in=None, user=item_name).all():
+                    flash(
+                        f'User "{item_name}" still has keys checked out and cannot be deleted.',
+                        "danger",
+                    )
+                else:
+                    flash(f'User "{item_name}" deleted.')
+                    db.session.delete(item)
+                    db.session.commit()
+            elif model_name == "assignment":
+                flash(f"Assignment deleted.")
+                db.session.delete(item)
+                db.session.commit()
+
+            else:
+                flash(f'The item "{model_name}" is not recognized.', "danger")
+
+        return redirect(url_for(f"{model_name}s"))
 
     return render_template(
         "quick_form.html",
         form=form,
-        title=f"Are you sure you want to delete {item}?",
+        title=f"Delete {model_name.capitalize()}",
+        subtitle=f'Are you sure you want to delete {model_name} "{item_name}"?',
     )

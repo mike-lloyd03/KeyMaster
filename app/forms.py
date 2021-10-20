@@ -40,8 +40,6 @@ class EditKeyForm(FlaskForm):
     )
     submit = SubmitField("Save Changes")
     delete = SubmitField("Delete Key")
-    name = HiddenField()
-    action = HiddenField()
 
 
 class AssignKeyForm(FlaskForm):
@@ -61,6 +59,7 @@ class EditAssignmentForm(FlaskForm):
     date_out = DateField("Date Out", validators=[DataRequired()])
     date_in = DateField("Date In", validators=[Optional()])
     submit = SubmitField("Submit")
+    delete = SubmitField("Delete Assignment")
 
 
 class NewUserForm(FlaskForm):
@@ -85,6 +84,7 @@ class EditUserForm(FlaskForm):
     display_name = StringField("Display Name")
     can_login = BooleanField("Can Login?")
     submit = SubmitField("Submit")
+    delete = SubmitField("Delete User")
 
 
 class ConfirmForm(FlaskForm):
