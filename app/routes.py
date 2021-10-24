@@ -10,12 +10,9 @@ from app.forms import (
     EditAssignmentForm,
     NewUserForm,
     EditUserForm,
-    LoginForm,
     ConfirmForm,
 )
 from app.models import Key, User, Assignment
-
-from datetime import datetime
 
 types = {"key": Key, "user": User, "assignment": Assignment}
 
@@ -33,7 +30,7 @@ def add_form_choices(form):
     return form
 
 
-def get_headings_rows(obj_list, heading_map={}):
+def get_headings_rows(obj_list, heading_map=None):
     """
     Generates a list of headings and a list of rows from a list of
     SQLAlchemy objects
@@ -81,8 +78,12 @@ def get_headings_rows(obj_list, heading_map={}):
 
 
 def get_user_dict():
-    users = User.query.all()
-    return {user.username: user.display_name for user in users}
+    """
+    Returns dictionary of {username: display_name} for all users in
+    the Users tables.
+    """
+    user_list = User.query.all()
+    return {user.username: user.display_name for user in user_list}
 
 
 @app.route("/")
@@ -92,17 +93,28 @@ def index():
     query_results = (
         Assignment.query.filter_by(date_in=None).order_by(Assignment.user).all()
     )
-    usernames = User.query.all()
+    # usernames = User.query.all()
 
+    # for r in query_results:
+    #     for un in usernames:
+    #         if un.username == r.user:
+    #             r.display_name = un.display_name if un.display_name else un.username
+
+    data = {}
     for r in query_results:
-        for un in usernames:
-            if un.username == r.user:
-                r.display_name = un.display_name if un.display_name else un.username
+        if data.get(r.user):
+            data[r.user].append(r.key)
+        else:
+            data[r.user] = [r.key]
 
-    heading_map = {"display_name": "User", "key": "Key Assigned"}
-    headings, rows = get_headings_rows(query_results, heading_map)
-    print(headings, rows)
-    return render_template("index.html", headings=headings, rows=rows)
+    # heading_map = {"display_name": "User", "key": "Key Assigned"}
+    # headings, rows = get_headings_rows(query_results, heading_map)
+    # return render_template("index.html", headings=headings, rows=rows)
+    return render_template(
+        "index.html",
+        headings=["User", "Assigned Keys"],
+        rows=[[k, v] for k, v in data.items()],
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -138,8 +150,8 @@ def logout():
 @app.route("/keys")
 @login_required
 def keys():
-    keys = Key.query.all()
-    return render_template("keys.html", keys=keys)
+    key_list = Key.query.all()
+    return render_template("keys.html", keys=key_list)
 
 
 @app.route("/add_key", methods=["GET", "POST"])
@@ -198,9 +210,11 @@ def edit_key():
 @app.route("/assignments", methods=["GET", "POST"])
 @login_required
 def assignments():
-    assignments = Assignment.query.all()
+    assignment_list = Assignment.query.all()
     user_dict = get_user_dict()
-    return render_template("assignments.html", assignments=assignments, users=user_dict)
+    return render_template(
+        "assignments.html", assignments=assignment_list, users=user_dict
+    )
 
 
 @app.route("/assign_key", methods=["GET", "POST"])
@@ -373,7 +387,7 @@ def confirm_delete():
                     db.session.delete(item)
                     db.session.commit()
             elif model_name == "assignment":
-                flash(f"Assignment deleted.")
+                flash("Assignment deleted.")
                 db.session.delete(item)
                 db.session.commit()
 
