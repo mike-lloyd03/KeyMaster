@@ -1,0 +1,15 @@
+---
+- hosts: archbook
+  tasks:
+    - name: Git pull KeyMaster
+      ansible.builtin.git:
+        repo: git@github.com:mike-lloyd03/KeyMaster.git
+        dest: $HOME/KeyMaster
+        update: yes
+        clone: no
+        force: yes
+    - name: Restart KeyMaster Service
+      ansible.builtin.systemd:
+        state: restarted
+        name: keymaster
+      become: yes
