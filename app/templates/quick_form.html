@@ -9,7 +9,12 @@
                 {% if subtitle %}
                     <h4>{{ subtitle }}</h4>
                 {% endif %}
-                {{ wtf.quick_form(form, button_map={"submit": "primary", "delete": "danger", "yes": "danger", "no": "primary"}) }}
+                {{ wtf.quick_form(form, button_map={
+                "submit": "primary",
+                "delete": "danger",
+                "cancel": "secondary",
+                "yes": "danger",
+                "no": "primary"}) }}
             </div>
         </div>
     </div>

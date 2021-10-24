@@ -80,6 +80,11 @@ def get_headings_rows(obj_list, heading_map={}):
     return (headings, rows)
 
 
+def get_user_dict():
+    users = User.query.all()
+    return {user.username: user.display_name for user in users}
+
+
 @app.route("/")
 @app.route("/index")
 @login_required
@@ -142,15 +147,20 @@ def keys():
 def add_key():
     form = NewKeyForm()
 
+    if request.method == "POST":
+        if form.cancel.data:
+            return redirect(url_for("keys"))
+
     if form.validate_on_submit():
 
-        if Key.query.get(form.name.data):
-            flash(f'Key "{form.name.data}" already exists.', "danger")
-        else:
-            key = Key(name=form.name.data, description=form.description.data)
-            db.session.add(key)
-            db.session.commit()
-            flash(f'Key "{key.name}" added')
+        if form.submit.data:
+            if Key.query.get(form.name.data):
+                flash(f'Key "{form.name.data}" already exists.', "danger")
+            else:
+                key = Key(name=form.name.data, description=form.description.data)
+                db.session.add(key)
+                db.session.commit()
+                flash(f'Key "{key.name}" added')
 
         return redirect(url_for("keys"))
 
@@ -165,6 +175,10 @@ def edit_key():
     if not key:
         return render_template("404.html"), 404
     form = EditKeyForm(description=key.description, status=key.status)
+
+    if request.method == "POST":
+        if form.cancel.data:
+            return redirect(url_for("keys"))
 
     if form.validate_on_submit():
         if form.delete.data:
@@ -185,13 +199,18 @@ def edit_key():
 @login_required
 def assignments():
     assignments = Assignment.query.all()
-    return render_template("assignments.html", assignments=assignments)
+    user_dict = get_user_dict()
+    return render_template("assignments.html", assignments=assignments, users=user_dict)
 
 
 @app.route("/assign_key", methods=["GET", "POST"])
 @login_required
 def assign_key():
     form = add_form_choices(AssignKeyForm())
+
+    if request.method == "POST":
+        if form.cancel.data:
+            return redirect(url_for("assignments"))
 
     if form.validate_on_submit():
         for key in form.key.data:
@@ -223,6 +242,10 @@ def edit_assignment():
         )
     )
 
+    if request.method == "POST":
+        if form.cancel.data:
+            return redirect(url_for("assignments"))
+
     if form.validate_on_submit():
         if form.delete.data:
             return redirect(
@@ -251,6 +274,10 @@ def users():
 @login_required
 def add_user():
     form = NewUserForm()
+
+    if request.method == "POST":
+        if form.cancel.data:
+            return redirect(url_for("users"))
 
     if form.validate_on_submit():
         if User.query.filter_by(username=form.username.data).first():
@@ -285,6 +312,10 @@ def edit_user():
         display_name=user.display_name,
         can_login=user.can_login,
     )
+
+    if request.method == "POST":
+        if form.cancel.data:
+            return redirect(url_for("users"))
 
     if form.validate_on_submit():
         if form.delete.data:

@@ -29,6 +29,7 @@ class NewKeyForm(FlaskForm):
     name = StringField("Key Name", validators=[DataRequired()])
     description = StringField("Description")
     submit = SubmitField("Add Key")
+    cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
 class EditKeyForm(FlaskForm):
@@ -40,6 +41,7 @@ class EditKeyForm(FlaskForm):
     )
     submit = SubmitField("Save Changes")
     delete = SubmitField("Delete Key")
+    cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
 class AssignKeyForm(FlaskForm):
@@ -49,6 +51,7 @@ class AssignKeyForm(FlaskForm):
     key = SelectMultipleField("Key", validators=[DataRequired()])
     date_out = DateField("Date Out", validators=[DataRequired()])
     submit = SubmitField("Submit")
+    cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
 class EditAssignmentForm(FlaskForm):
@@ -60,6 +63,7 @@ class EditAssignmentForm(FlaskForm):
     date_in = DateField("Date In", validators=[Optional()])
     submit = SubmitField("Submit")
     delete = SubmitField("Delete Assignment")
+    cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
 class NewUserForm(FlaskForm):
@@ -74,6 +78,7 @@ class NewUserForm(FlaskForm):
     )
     can_login = BooleanField("Can Login?")
     submit = SubmitField("Submit")
+    cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
 class EditUserForm(FlaskForm):
@@ -85,6 +90,7 @@ class EditUserForm(FlaskForm):
     can_login = BooleanField("Can Login?")
     submit = SubmitField("Submit")
     delete = SubmitField("Delete User")
+    cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
 class ConfirmForm(FlaskForm):

@@ -5,6 +5,9 @@
         <div class="row justify-content-center">
             <div class="" style="text-align: center">
                 <h2>Assignments</h2>
+                <div class="container py-2">
+                    <a class="btn btn-primary" href="{{ url_for('assign_key') }}" role="button">Assign Key</a>
+                </div>
                 <table class="table table-striped table-hover table-bordered">
                     <thead class="table-dark">
                         <tr>
@@ -18,7 +21,7 @@
                     <tbody>
                         {% for a in assignments %}
                             <tr>
-                                <td>{{ a.user }}</td>
+                                <td>{{ users[a.user] if users[a.user] else a.user }}</td>
                                 <td>{{ a.key }}</td>
                                 <td>{{ a.date_out }}</td>
                                 <td>{{ a.date_in }}</td>
@@ -29,9 +32,6 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <div>
-                    <a class="btn btn-primary" href="{{ url_for('assign_key') }}" role="button">Assign Key</a>
-                </div>
             </div>
         </div>
     </div>
