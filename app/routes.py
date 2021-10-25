@@ -1,3 +1,4 @@
+""" Handles routing in the app """
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, login_required, logout_user
 
@@ -90,6 +91,15 @@ def get_user_dict():
     return {user.username: user.display_name for user in user_list if user.display_name}
 
 
+def get_display_name(username):
+    """
+    Returns the display name of the given username. If a user does not have a
+    display name, the username is returned
+    """
+    display_name = User.query.filter_by(username=username).first().display_name
+    return display_name or username
+
+
 ############################
 # Routes
 ############################
@@ -99,10 +109,12 @@ def get_user_dict():
 @app.route("/index")
 @login_required
 def index():
+    """
+    Main home page
+    """
     # TODO: Add search filtering
 
     sort_method = request.args.get("sort")
-    user_dict = get_user_dict()
 
     if sort_method == "by_user":
         assignment_list = (
@@ -113,7 +125,7 @@ def index():
 
         data = {}
         for assignment in assignment_list:
-            username = user_dict.get(assignment.user, assignment.user)
+            username = get_display_name(assignment.user)
             if data.get(username):
                 data[username] += f", {assignment.key}"
             else:
@@ -137,7 +149,7 @@ def index():
 
         data = {}
         for assignment in assignment_list:
-            username = user_dict.get(assignment.user, assignment.user)
+            username = get_display_name(assignment.user)
             if data.get(assignment.key):
                 data[assignment.key] += f", {username}"
             else:
@@ -157,6 +169,9 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Login page
+    """
     if current_user.is_authenticated:
         return redirect(url_for("index"))
 
@@ -181,6 +196,9 @@ def login():
 
 @app.route("/logout")
 def logout():
+    """
+    Logout page
+    """
     logout_user()
     return redirect(url_for("login"))
 
@@ -188,6 +206,9 @@ def logout():
 @app.route("/keys")
 @login_required
 def keys():
+    """
+    Key list page
+    """
     key_list = Key.query.all()
     return render_template("keys.html", keys=key_list)
 
@@ -195,6 +216,9 @@ def keys():
 @app.route("/add_key", methods=["GET", "POST"])
 @login_required
 def add_key():
+    """
+    Page for adding new keys to the database
+    """
     form = NewKeyForm()
 
     if request.method == "POST":
@@ -220,6 +244,9 @@ def add_key():
 @app.route("/edit_key", methods=["GET", "POST"])
 @login_required
 def edit_key():
+    """
+    Page for editing existing keys.
+    """
     key_name = request.args.get("name")
     key = Key.query.filter_by(name=key_name).first()
     if not key:
@@ -248,6 +275,9 @@ def edit_key():
 @app.route("/assignments", methods=["GET", "POST"])
 @login_required
 def assignments():
+    """
+    List of key assignments.
+    """
     assignment_list = Assignment.query.all()
     user_dict = get_user_dict()
     return render_template(
@@ -258,7 +288,9 @@ def assignments():
 @app.route("/assign_key", methods=["GET", "POST"])
 @login_required
 def assign_key():
-    # TODO: Do not allow assigning same key to same person twice
+    """
+    Page for assigning keys
+    """
     form = add_form_choices(AssignKeyForm())
 
     if request.method == "POST":
@@ -267,12 +299,21 @@ def assign_key():
 
     if form.validate_on_submit():
         for key in form.key.data:
-            assignment = Assignment(
-                user=form.user.data, key=key, date_out=form.date_out.data
-            )
-            db.session.add(assignment)
+            # Check if key is currently assigned to user
+            if Assignment.query.filter_by(
+                user=form.user.data, key=key, date_in=None
+            ).first():
+                flash(
+                    f'Key "{key}" already assigned to {get_display_name(form.user.data)}',
+                    "danger",
+                )
+            else:
+                assignment = Assignment(
+                    user=form.user.data, key=key, date_out=form.date_out.data
+                )
+                db.session.add(assignment)
+                flash(f'Key "{key}" assigned')
         db.session.commit()
-        flash("Key assigned")
         return redirect(url_for("assignments"))
 
     return render_template("quick_form.html", form=form, title="Assign Key")
@@ -281,6 +322,9 @@ def assign_key():
 @app.route("/edit_assignment", methods=["GET", "POST"])
 @login_required
 def edit_assignment():
+    """
+    Page for editing an assignment
+    """
     assignment_id = request.args.get("id")
     assignment = Assignment.query.filter_by(id=assignment_id).first()
     if not assignment:
@@ -319,6 +363,9 @@ def edit_assignment():
 @app.route("/users")
 @login_required
 def users():
+    """
+    List of users.
+    """
     user_list = User.query.order_by(User.username).all()
     return render_template("users.html", users=user_list)
 
@@ -326,6 +373,9 @@ def users():
 @app.route("/add_user", methods=["GET", "POST"])
 @login_required
 def add_user():
+    """
+    Page for adding new users to the database.
+    """
     form = NewUserForm()
 
     if request.method == "POST":
@@ -355,6 +405,9 @@ def add_user():
 @app.route("/edit_user", methods=["GET", "POST"])
 @login_required
 def edit_user():
+    """
+    Page for editing an existing user.
+    """
     user_id = request.args.get("id")
     user = User.query.filter_by(id=user_id).first()
     if not user:
@@ -388,6 +441,9 @@ def edit_user():
 @app.route("/confirm_delete", methods=["GET", "POST"])
 @login_required
 def confirm_delete():
+    """
+    Page for handling the confirmation of a delete action
+    """
     form = ConfirmForm()
 
     model_name = request.args.get("model")
