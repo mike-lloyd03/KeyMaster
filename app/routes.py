@@ -99,31 +99,60 @@ def get_user_dict():
 @app.route("/index")
 @login_required
 def index():
-    query_results = (
-        Assignment.query.filter_by(date_in=None)
-        .order_by(Assignment.user, Assignment.key)
-        .all()
-    )
+    # TODO: Add search filtering
+
+    sort_method = request.args.get("sort")
     user_dict = get_user_dict()
 
-    data = {}
-    for r in query_results:
-        username = user_dict.get(r.user, r.user)
-        if data.get(username):
-            data[username] += f", {r.key}"
-        else:
-            data[username] = str(r.key)
+    if sort_method == "by_user":
+        assignment_list = (
+            Assignment.query.filter_by(date_in=None)
+            .order_by(Assignment.user, Assignment.key)
+            .all()
+        )
 
-    headings = ["User", "Assigned Keys"]
+        data = {}
+        for assignment in assignment_list:
+            username = user_dict.get(assignment.user, assignment.user)
+            if data.get(username):
+                data[username] += f", {assignment.key}"
+            else:
+                data[username] = str(assignment.key)
+        rows = [[k, v] for k, v in data.items()]
 
-    # heading_map = {"display_name": "User", "key": "Key Assigned"}
-    # headings, rows = get_headings_rows(query_results, heading_map)
-    # return render_template("index.html", headings=headings, rows=rows)
-    return render_template(
-        "index.html",
-        headings=headings,
-        rows=[[k, v] for k, v in data.items()],
-    )
+        headings = ["User", "Assigned Keys"]
+
+        return render_template(
+            "index.html",
+            headings=headings,
+            rows=rows,
+        )
+
+    if sort_method == "by_key":
+        assignment_list = (
+            Assignment.query.filter_by(date_in=None)
+            .order_by(Assignment.key, Assignment.user)
+            .all()
+        )
+
+        data = {}
+        for assignment in assignment_list:
+            username = user_dict.get(assignment.user, assignment.user)
+            if data.get(assignment.key):
+                data[assignment.key] += f", {username}"
+            else:
+                data[assignment.key] = str(username)
+        rows = [[k, v] for k, v in data.items()]
+
+        headings = ["Key", "Users Assigned"]
+
+        return render_template(
+            "index.html",
+            headings=headings,
+            rows=rows,
+        )
+
+    return redirect(url_for("index", sort="by_user"))
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -229,6 +258,7 @@ def assignments():
 @app.route("/assign_key", methods=["GET", "POST"])
 @login_required
 def assign_key():
+    # TODO: Do not allow assigning same key to same person twice
     form = add_form_choices(AssignKeyForm())
 
     if request.method == "POST":
