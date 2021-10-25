@@ -50,7 +50,7 @@ class AssignKeyForm(FlaskForm):
     user = SelectField("User", validators=[DataRequired()])
     key = SelectMultipleField("Key", validators=[DataRequired()])
     date_out = DateField("Date Out", validators=[DataRequired()])
-    submit = SubmitField("Submit")
+    submit = SubmitField("Assign Key")
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
@@ -61,7 +61,7 @@ class EditAssignmentForm(FlaskForm):
     key = SelectField("Key", validators=[DataRequired()])
     date_out = DateField("Date Out", validators=[DataRequired()])
     date_in = DateField("Date In", validators=[Optional()])
-    submit = SubmitField("Submit")
+    submit = SubmitField("Save Changes")
     delete = SubmitField("Delete Assignment")
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
@@ -77,7 +77,7 @@ class NewUserForm(FlaskForm):
         "Repeat Password", validators=[DataRequired(), EqualTo("password")]
     )
     can_login = BooleanField("Can Login?")
-    submit = SubmitField("Submit")
+    submit = SubmitField("Create User")
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
 
@@ -88,7 +88,7 @@ class EditUserForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired()])
     display_name = StringField("Display Name")
     can_login = BooleanField("Can Login?")
-    submit = SubmitField("Submit")
+    submit = SubmitField("Save Changes")
     delete = SubmitField("Delete User")
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 

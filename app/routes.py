@@ -14,6 +14,10 @@ from app.forms import (
 )
 from app.models import Key, User, Assignment
 
+############################
+# Functions
+############################
+
 types = {"key": Key, "user": User, "assignment": Assignment}
 
 
@@ -86,33 +90,40 @@ def get_user_dict():
     return {user.username: user.display_name for user in user_list}
 
 
+############################
+# Routes
+############################
+
+
 @app.route("/")
 @app.route("/index")
 @login_required
 def index():
     query_results = (
-        Assignment.query.filter_by(date_in=None).order_by(Assignment.user).all()
+        Assignment.query.filter_by(date_in=None)
+        .order_by(Assignment.user, Assignment.key)
+        .all()
     )
-    # usernames = User.query.all()
-
-    # for r in query_results:
-    #     for un in usernames:
-    #         if un.username == r.user:
-    #             r.display_name = un.display_name if un.display_name else un.username
+    user_dict = get_user_dict()
 
     data = {}
     for r in query_results:
-        if data.get(r.user):
-            data[r.user].append(r.key)
+        username = user_dict.get(r.user)
+        if not username:
+            username = r.user
+        if data.get(username):
+            data[username] += f", {r.key}"
         else:
-            data[r.user] = [r.key]
+            data[username] = str(r.key)
+
+    headings = ["User", "Assigned Keys"]
 
     # heading_map = {"display_name": "User", "key": "Key Assigned"}
     # headings, rows = get_headings_rows(query_results, heading_map)
     # return render_template("index.html", headings=headings, rows=rows)
     return render_template(
         "index.html",
-        headings=["User", "Assigned Keys"],
+        headings=headings,
         rows=[[k, v] for k, v in data.items()],
     )
 
