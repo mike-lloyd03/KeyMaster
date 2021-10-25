@@ -87,7 +87,7 @@ def get_user_dict():
     the Users tables.
     """
     user_list = User.query.all()
-    return {user.username: user.display_name for user in user_list}
+    return {user.username: user.display_name for user in user_list if user.display_name}
 
 
 ############################
@@ -108,9 +108,7 @@ def index():
 
     data = {}
     for r in query_results:
-        username = user_dict.get(r.user)
-        if not username:
-            username = r.user
+        username = user_dict.get(r.user, r.user)
         if data.get(username):
             data[username] += f", {r.key}"
         else:

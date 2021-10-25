@@ -21,7 +21,7 @@
                     <tbody>
                         {% for a in assignments %}
                             <tr>
-                                <td>{{ users[a.user] if users[a.user] else a.user }}</td>
+                                <td>{{ users.get(a.user, a.user) }}</td>
                                 <td>{{ a.key }}</td>
                                 <td>{{ a.date_out }}</td>
                                 <td>{{ a.date_in }}</td>
