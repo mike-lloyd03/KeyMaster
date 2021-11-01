@@ -47,7 +47,8 @@ class EditKeyForm(FlaskForm):
 class AssignKeyForm(FlaskForm):
     """Form for assigning keys to a user"""
 
-    user = SelectField("User", validators=[DataRequired()])
+    # user = SelectField("User", validators=[DataRequired()])
+    user = SelectMultipleField("User", validators=[DataRequired()])
     key = SelectMultipleField("Key", validators=[DataRequired()])
     date_out = DateField("Date Out", validators=[DataRequired()])
     submit = SubmitField("Assign Key")

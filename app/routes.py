@@ -298,21 +298,20 @@ def assign_key():
             return redirect(url_for("assignments"))
 
     if form.validate_on_submit():
-        for key in form.key.data:
-            # Check if key is currently assigned to user
-            if Assignment.query.filter_by(
-                user=form.user.data, key=key, date_in=None
-            ).first():
-                flash(
-                    f'Key "{key}" already assigned to {get_display_name(form.user.data)}',
-                    "danger",
-                )
-            else:
-                assignment = Assignment(
-                    user=form.user.data, key=key, date_out=form.date_out.data
-                )
-                db.session.add(assignment)
-                flash(f'Key "{key}" assigned')
+        for user in form.user.data:
+            for key in form.key.data:
+                # Check if key is currently assigned to user
+                if Assignment.query.filter_by(user=user, key=key, date_in=None).first():
+                    flash(
+                        f'Key "{key}" already assigned to {get_display_name(user)}',
+                        "danger",
+                    )
+                else:
+                    assignment = Assignment(
+                        user=user, key=key, date_out=form.date_out.data
+                    )
+                    db.session.add(assignment)
+                    flash(f'Key "{key}" assigned to {user}')
         db.session.commit()
         return redirect(url_for("assignments"))
 
