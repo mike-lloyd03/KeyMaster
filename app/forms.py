@@ -13,7 +13,7 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Optional, EqualTo
 
-from app.models import User
+from app.models import User, Key
 
 
 class LoginForm(FlaskForm):
@@ -32,6 +32,13 @@ class NewKeyForm(FlaskForm):
     description = StringField("Description")
     submit = SubmitField("Add Key")
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
+
+    def __init__(self):
+        super().__init__()
+
+    def validate_name(self, name):
+        if Key.query.filter_by(name=name.data).first():
+            raise ValidationError(f"Key '{name.data}' already exists.")
 
 
 class EditKeyForm(FlaskForm):
@@ -73,7 +80,7 @@ class NewUserForm(FlaskForm):
     """Form for creating new users"""
 
     username = StringField("Username", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired()])
+    email = StringField("Email")
     display_name = StringField("Display Name")
     password = PasswordField("Password", validators=[DataRequired()])
     password2 = PasswordField(
@@ -84,15 +91,15 @@ class NewUserForm(FlaskForm):
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
     def __init__(self):
-        super(NewUserForm, self).__init__()
+        super().__init__()
 
     def validate_username(self, username):
         if User.query.filter_by(username=username.data).first():
-            raise ValidationError(f"Username is already in use.")
+            raise ValidationError("Username is already in use.")
 
     def validate_email(self, email):
         if User.query.filter_by(email=email.data).first():
-            raise ValidationError(f"Email address is already in use.")
+            raise ValidationError("Email address is already in use.")
 
 
 class EditUserForm(FlaskForm):
@@ -105,6 +112,21 @@ class EditUserForm(FlaskForm):
     submit = SubmitField("Save Changes")
     delete = SubmitField("Delete User")
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prev_username = kwargs["username"]
+        self.prev_email = kwargs["email"]
+
+    def validate_username(self, username):
+        if username.data != self.prev_username:
+            if User.query.filter_by(username=username.data).first():
+                raise ValidationError("Username is already in use.")
+
+    def validate_email(self, email):
+        if email.data != self.prev_email:
+            if User.query.filter_by(email=email.data).first():
+                raise ValidationError("Email address is already in use.")
 
 
 class ConfirmForm(FlaskForm):
