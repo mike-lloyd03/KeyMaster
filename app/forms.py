@@ -106,7 +106,7 @@ class EditUserForm(FlaskForm):
     """Form for editing existing users"""
 
     username = StringField("Username", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired()])
+    email = StringField("Email")
     display_name = StringField("Display Name")
     can_login = BooleanField("Can Login?")
     submit = SubmitField("Save Changes")
