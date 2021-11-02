@@ -124,6 +124,10 @@ class EditUserForm(FlaskForm):
                 raise ValidationError("Username is already in use.")
 
     def validate_email(self, email):
+        print(f"email.data='{email.data}'")
+        if email.data == "":
+            self.email.data = None
+            return
         if email.data != self.prev_email:
             if User.query.filter_by(email=email.data).first():
                 raise ValidationError("Email address is already in use.")
