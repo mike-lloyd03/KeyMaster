@@ -9,9 +9,11 @@ from wtforms import (
     DateField,
     SelectField,
     SelectMultipleField,
-    HiddenField,
+    ValidationError,
 )
 from wtforms.validators import DataRequired, Optional, EqualTo
+
+from app.models import User
 
 
 class LoginForm(FlaskForm):
@@ -81,6 +83,17 @@ class NewUserForm(FlaskForm):
     submit = SubmitField("Create User")
     cancel = SubmitField("Cancel", render_kw={"formnovalidate": True})
 
+    def __init__(self):
+        super(NewUserForm, self).__init__()
+
+    def validate_username(self, username):
+        if User.query.filter_by(username=username.data).first():
+            raise ValidationError(f"Username is already in use.")
+
+    def validate_email(self, email):
+        if User.query.filter_by(email=email.data).first():
+            raise ValidationError(f"Email address is already in use.")
+
 
 class EditUserForm(FlaskForm):
     """Form for editing existing users"""
@@ -95,5 +108,7 @@ class EditUserForm(FlaskForm):
 
 
 class ConfirmForm(FlaskForm):
+    """Form for confirming changes"""
+
     yes = SubmitField("Yes")
     no = SubmitField("No")

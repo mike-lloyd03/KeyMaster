@@ -382,20 +382,16 @@ def add_user():
             return redirect(url_for("users"))
 
     if form.validate_on_submit():
-        if User.query.filter_by(username=form.username.data).first():
-            print("Existing user:", User.query.get(form.username.data))
-            flash(f'User "{form.username.data}" already exists', "danger")
-        else:
-            user = User(
-                username=form.username.data,
-                email=form.email.data,
-                display_name=form.display_name.data,
-                can_login=form.can_login.data,
-            )
-            user.set_password(form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            flash(f'User "{user.username}" created')
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            display_name=form.display_name.data,
+            can_login=form.can_login.data,
+        )
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash(f'User "{user.username}" created')
         return redirect(url_for("users"))
 
     return render_template("quick_form.html", form=form, title="Add User")
