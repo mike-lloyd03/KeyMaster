@@ -1,19 +1,12 @@
 """ Handles routing in the app """
-from flask import render_template, flash, redirect, url_for, request
-from flask_login import current_user, login_user, login_required, logout_user
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
 
 from app import app, db
-from app.forms import (
-    LoginForm,
-    NewKeyForm,
-    EditKeyForm,
-    AssignKeyForm,
-    EditAssignmentForm,
-    NewUserForm,
-    EditUserForm,
-    ConfirmForm,
-)
-from app.models import Key, User, Assignment
+from app.forms import (AssignKeyForm, ConfirmForm, EditAssignmentForm,
+                       EditKeyForm, EditUserForm, LoginForm, NewKeyForm,
+                       NewUserForm)
+from app.models import Assignment, Key, User
 
 ############################
 # Functions
@@ -186,9 +179,15 @@ def login():
             or not user.check_password(form.password.data)
         ):
             flash("Invalid login credentials")
+            app.logger.warn(
+                f"Failed login attempt for user {form.username.data} from {request.remote_addr} - {request.user_agent}"
+            )
             return redirect(url_for("login"))
 
         login_user(user)
+        app.logger.info(
+            f"Successful login for user {user.username} from {request.remote_addr} - {request.user_agent}"
+        )
         return redirect(url_for("index"))
 
     return render_template("quick_form.html", form=LoginForm(), title="Login")
@@ -199,6 +198,11 @@ def logout():
     """
     Logout page
     """
+    user_id = current_user.get_id()
+    user = User.query.filter_by(id=user_id).first()
+    app.logger.info(
+        f"User {user.username} logged out. {request.remote_addr} - {request.user_agent}"
+    )
     logout_user()
     return redirect(url_for("login"))
 
