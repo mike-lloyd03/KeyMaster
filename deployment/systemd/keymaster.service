@@ -3,8 +3,13 @@ Description=A key management tool
 
 [Service]
 Type=simple
-WorkingDirectory=/home/mike/KeyMaster
-ExecStart=/home/mike/KeyMaster/.venv/bin/gunicorn -b localhost:8000 -w 4 keymaster:app
+WorkingDirectory=WORKING_DIRECTORY
+ExecStart=WORKING_DIRECTORY/.venv/bin/gunicorn \
+    --bind localhost:8000 \
+    --workers 4 \
+    --capture-output \
+    --log-file WORKING_DIRECTORY/keymaster.log \
+    keymaster:app
 Restart=on-failure
 
 [Install]
