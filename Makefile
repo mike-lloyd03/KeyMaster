@@ -8,5 +8,5 @@ venv: requirements.txt
 
 .PHONY: deploy
 deploy: 
-	sed "s|WORKING_DIRECTORY|${PWD}|g" deployment/systemd/server-status-mqtt.service | sudo tee /etc/systemd/system/server-status-mqtt.service > /dev/null
+	sed "s|WORKING_DIRECTORY|${PWD}|g" deployment/systemd/server-status-mqtt.service | sudo tee /etc/systemd/system/keymaster.service > /dev/null
 	systemctl daemon-reload
