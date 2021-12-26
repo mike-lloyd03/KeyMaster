@@ -93,6 +93,10 @@ def get_display_name(username):
     return display_name or username
 
 
+def get_request_details(request):
+    return f"{request.environ.get('HTTP_X_REAL_IP', request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr))} - {request.user_agent}"
+
+
 ############################
 # Routes
 ############################
@@ -180,13 +184,13 @@ def login():
         ):
             flash("Invalid login credentials")
             app.logger.warn(
-                f"Failed login attempt for user {form.username.data} from {request.remote_addr} - {request.user_agent}"
+                f"Failed login attempt for user {form.username.data} from {get_request_details(request)}"
             )
             return redirect(url_for("login"))
 
         login_user(user)
         app.logger.info(
-            f"Successful login for user {user.username} from {request.remote_addr} - {request.user_agent}"
+            f"Successful login for user {user.username} from {get_request_details(request)}"
         )
         return redirect(url_for("index"))
 
@@ -201,7 +205,7 @@ def logout():
     user_id = current_user.get_id()
     user = User.query.filter_by(id=user_id).first()
     app.logger.info(
-        f"User {user.username} logged out. {request.remote_addr} - {request.user_agent}"
+        f"User {user.username} logged out. {get_request_details(request)}"
     )
     logout_user()
     return redirect(url_for("login"))
